@@ -5,7 +5,7 @@ including batch and streaming via kafka with development tools.
 The purpose of this project is to provide a sandbox environment to explore how
 Apache Airflow works.  The sandbox includes developer tools as well as common 
 production tools. This first version of the sandbox is meant to run locally
-via `docker-compose`, however I fully intend to add k8s support. 
+via `docker-compose`; however, other deployment options will be added.
 
 This project creates separate containers for:
 
@@ -19,16 +19,16 @@ Core Airflow
 
 Optional Development / Monitoring Tools
 
-- redis-ui -- redisinsight, a web ui for viewing redis status
+- [redisinsight](https://redislabs.com/redisinsight/) -- a web ui for viewing redis status
 - [flower](https://github.com/mher/flower) -- web and api for monitoring Celery clusters
 - [mailhog](https://github.com/mailhog/MailHog) -- web email testing tool
 - [adminer](https://www.adminer.org/) -- web database browser
-- log gatherer thingy / prometheus?
 
 Future Work 
 
 - kafka -- streaming example
 - zookeeper -- for kafka
+- log gatherer / monitor
 
 ## Quickstart
 
@@ -71,8 +71,8 @@ Access to flower API
 # To-dos
 
 
-- [ ] Autoconfigure redisinsignt so that it finds the configured redis server
-- [ ] Autoconfigure adminer so that it sees the postgres db
+- [ ] Autoconfigure `redisinsight` so that it finds the configured redis server
+- [ ] Autoconfigure `adminer` so that it sees the postgres db
 - [ ] Add Kafka streaming
 - [ ] Kubernetes deployment
 - [ ] OpenFaaS to host endpoints for task implementations
