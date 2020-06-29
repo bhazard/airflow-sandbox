@@ -2,23 +2,33 @@
 A multi-container docker sandbox for [Apache Airflow](https://airflow.apache.org/), 
 including batch and streaming via kafka with development tools.
 
-The purpose of this project is to provide a sandbox environment to explore various 
-interactions with Airflow.  The sandbox includes developer tools as well as common 
-production tools. The sandbox may be run locally, or in a Kubernetes cluster.  
+The purpose of this project is to provide a sandbox environment to explore how
+Apache Airflow works.  The sandbox includes developer tools as well as common 
+production tools. This first version of the sandbox is meant to run locally
+via `docker-compose`, however I fully intend to add k8s support. 
 
 This project creates separate containers for:
 
-- airflowui -- Airflow's web UI
+Core Airflow 
+
+- airflow-ui -- Airflow's web UI
 - postgres -- persistent data store for airflow's metadata
 - scheduler / executor -- [Celery](https://github.com/celery/celery) is used as the Executor (alternatives include a LocalExecutor or MesosExecutor)
 - worker -- Celery worker(s)
 - redis -- Message broker for Celery (Celery could also use RabbitMQ or Amazon SQS)
+
+Optional Development / Monitoring Tools
+
+- redis-ui -- redisinsight, a web ui for viewing redis status
 - [flower](https://github.com/mher/flower) -- web and api for monitoring Celery clusters
 - [mailhog](https://github.com/mailhog/MailHog) -- web email testing tool
-- db browser thingy
+- [adminer](https://www.adminer.org/) -- web database browser
 - log gatherer thingy / prometheus?
-- kafka
-- zookeeper
+
+Future Work 
+
+- kafka -- streaming example
+- zookeeper -- for kafka
 
 ## Quickstart
 
@@ -31,15 +41,22 @@ PRs if that helps)
 - `docker-compose up`
 - URL's (unless you edit ports in `.env`)
   - [Airflow UI](http://localhost:8080)
+  - [Adminer](http://localhost:8087)
   - [Flower](http://localhost:5555)
+  - [Redis Insight](http://localhost:8085)
   - [MailHog](http://localhost:5555)
-
 
 ### Setup
 
 ### Start
 
+`docker-compose up --scale worker=2`
+
+`docker-compose down -v`
+
 ### Notes
+
+Base Image ... why we care
 
 Access from airflow commandline
 Access to flower API
@@ -53,6 +70,9 @@ Access to flower API
 
 # To-dos
 
-[] - Add Kafka streaming
-[] - Kubernetes deployment
-[] - OpenFaaS / P
+
+[ ] - Autoconfigure redisinsignt so that it finds the configured redis server
+[ ] - Autoconfigure adminer so that it sees the postgres db
+[ ] - Add Kafka streaming
+[ ] - Kubernetes deployment
+[ ] - OpenFaaS to host endpoints for task implementations
