@@ -71,8 +71,8 @@ Access to flower API
 # To-dos
 
 
-[ ] - Autoconfigure redisinsignt so that it finds the configured redis server
-[ ] - Autoconfigure adminer so that it sees the postgres db
-[ ] - Add Kafka streaming
-[ ] - Kubernetes deployment
-[ ] - OpenFaaS to host endpoints for task implementations
+- [ ] Autoconfigure redisinsignt so that it finds the configured redis server
+- [ ] Autoconfigure adminer so that it sees the postgres db
+- [ ] Add Kafka streaming
+- [ ] Kubernetes deployment
+- [ ] OpenFaaS to host endpoints for task implementations
