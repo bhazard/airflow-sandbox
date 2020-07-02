@@ -1,0 +1,189 @@
+# creates a set of containers that form an airflow sandbox -- an environment
+# for experimenting with airflow
+# 
+# most containers are built locally (see relevant sub directories)
+# you can configure versions via a .env file (see readme.md)
+# -----------------------------------------------------------------------------
+
+version: '3.7'
+
+services:
+
+    # -------------------------------------------------------------------------
+    # redis
+    # message broker for celery
+    # -------------------------------------------------------------------------
+    redis:
+        image: redis:$REDIS_VERSION
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 1s
+            timeout: 3s
+            retries: 30
+
+    # -------------------------------------------------------------------------
+    # redusinsight (OPTIONAL)
+    # Monitor / admin for redis
+    # -------------------------------------------------------------------------
+    redis-ui:
+        image: redislabs/redisinsight:latest
+        volumes:
+            - ./redisinsightdata:/db
+        ports:
+            - $REDISINSIGHT_PORT:8001
+
+    # -------------------------------------------------------------------------
+    # postgres
+    # metadata store for airflow
+    # -------------------------------------------------------------------------
+    postgres:
+        image: postgres:$POSTGRES_VERSION
+        environment:
+            - POSTGRES_USER=$POSTGRES_USER
+            - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+            - POSTGRES_DB=$POSTGRES_DATABASE
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        ports:
+            - $POSTGRES_PORT:5432
+
+    # -------------------------------------------------------------------------
+    # adminer (OPTIONAL)
+    # For exploring the database
+    # -------------------------------------------------------------------------
+    adminer:
+        image: adminer:latest
+        restart: always
+        environment:
+            - ADMINER_DEFAULT_SERVER=postgres  # should match service name above
+        ports:
+            - $ADMINER_PORT:8080
+
+    # -------------------------------------------------------------------------
+    # airflow UI
+    # Airfow's web ui
+    # -------------------------------------------------------------------------
+    airflow-ui:
+        image: $REPONAME/airflow-ui:$AIRFLOW_VERSION
+        build:
+            context: ./airflow
+            dockerfile: ./ui/Dockerfile
+            args:
+                PYTHON_IMAGE_VERSION: $PYTHON_IMAGE_VERSION
+        restart: always
+        depends_on:
+            - postgres
+            - redis
+        environment:
+            - LOAD_EX=n
+            - FERNET_KEY=$FERNET_KEY
+            - EXECUTOR=Celery
+            # - POSTGRES_USER=$POSTGRES_USER
+            # - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+            # - POSTGRES_DB=$POSTGRES_DATABASE
+            # - REDIS_PASSWORD=redispass
+        volumes:
+            - ./dags:/usr/local/airflow/dags
+        ports:
+            - $AIRFLOWUI_PORT:8080
+        healthcheck:
+            test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+            interval: 30s
+            timeout: 30s
+            retries: 3
+
+
+    # -------------------------------------------------------------------------
+    # flower (OPTIONAL)
+    # Web tool for monitoring and managing Celery workers
+    # -------------------------------------------------------------------------
+    flower:
+        image: $REPONAME/flower
+        build:
+            context: ./flower
+        restart: always
+        depends_on:
+            - redis
+        environment:
+            - CELERY_BROKER_URL=redis://redis:6379/$REDIS_DBNUM
+        ports:
+            - $CELERY_PORT:5555
+
+
+    # -------------------------------------------------------------------------
+    # scheduler
+    # -------------------------------------------------------------------------
+    scheduler:
+        image: $REPONAME/scheduler:$AIRFLOW_VERSION
+        build:
+            context: ./airflow
+            dockerfile: ./scheduler/Dockerfile
+            args:
+                PYTHON_IMAGE_VERSION: $PYTHON_IMAGE_VERSION
+        restart: always
+        # scheduler waits for FE, as that process initializes the pg database
+        depends_on:
+            - airflow-ui
+        volumes:
+            - ./dags:/usr/local/airflow/dags
+        environment:
+            - LOAD_EX=n
+            - FERNET_KEY=$FERNET_KEY
+            - EXECUTOR=Celery
+
+    # -------------------------------------------------------------------------
+    # worker
+    # Celery worker node.  If desired, start multiple workers via:
+    #   docker-compose up --scale worker=2
+    # -------------------------------------------------------------------------
+    worker:
+        image: $REPONAME/worker:$AIRFLOW_VERSION
+        build:
+            context: ./airflow
+            dockerfile: ./worker/Dockerfile
+            args:
+                PYTHON_IMAGE_VERSION: $PYTHON_IMAGE_VERSION
+        restart: always
+        depends_on:
+            - scheduler
+        volumes:
+            - ./dags:/usr/local/airflow/dags
+        environment:
+            - FERNET_KEY=$FERNET_KEY
+            - EXECUTOR=Celery
+            - POSTGRES_USER=$POSTGRES_USER
+            - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+            - POSTGRES_DB=$POSTGRES_DATABASE
+
+    # -------------------------------------------------------------------------
+    # mailhog (OPTIONAL)
+    # This container provides an SMTP service, as well as a web interface to
+    # debug email sent via this service. 
+    # -------------------------------------------------------------------------
+    mailhog:
+        image: $REPONAME/mailhog
+        build:
+            context: ./mailhog
+            dockerfile: Dockerfile.linux
+        environment:
+            - MH_HOSTNAME=mailhog
+        # Mailhog sends a ton of goo to the logs.  Comment out the two lines
+        # below if you need to see mailhog output.
+        logging:
+            driver: none
+        # Configure a container to access the smtp server via mailhog:1025
+        ports:
+            - $MAILHOG_WEB_PORT:8025
+            # - $MAILHOG_SMTP_PORT:1025
+
+# -----------------------------------------------------------------------------
+# Shared volumes
+# -----------------------------------------------------------------------------
+volumes:
+    dags:
+        driver_opts:
+            type: none
+            device: $PWD/dags
