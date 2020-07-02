@@ -1,31 +1,31 @@
 # airflow-sandbox
 
-A multi-image, multi-container docker sandbox for [Apache Airflow](https://airflow.apache.org/), including batch and streaming via kafka with development tools.
+A multi-container docker sandbox for [Apache Airflow](https://airflow.apache.org/).
 
 The purpose of this project is to provide a sandbox environment to explore how
 Apache Airflow works.  The sandbox consists of a set of containers, organized as
 separate services.  The services include developer tools as well as common 
-production tools. This first version of the sandbox is meant to run locally
-via `docker-compose`; however, other deployment options will be added.
+production tools. 
 
-Note that there is an excellent and very mature Docker container option that uses
+Before continuing, please note that there is an excellent and very mature Docker container option that uses
 one image and spawns it with different roles.  That project is maintained by
 Matthieu Roisil and is the base for many popular articles on Airflow and Docker
-across the web.  Please see (https://github.com/puckel/docker-airflow)
+across the web.  Please see [docker-airflow](https://github.com/puckel/docker-airflow)
 for details.
 
-Caveat: I have not given thought to what might be required for production use
-of any of the images here.  For example, most are provided with little in the way of security.
-
-This project is built and maintained on a mac (intel, in case that matters to a 
-future unfortunate reader) ... ymmv if you run it elsewhere (but happy to accept
-PRs).
+Please note that this project is *not* intended to be a way for a beginnger to
+get started with airflow.  For that, please see the all-in-one image referenced above,
+as it is very likely the solution referenced in any getting started articles.  The
+images created here are more folks that have done the basic tutorials, and are ready
+to roll up their sleeves and writee some real DAGS.  In that spirit, we won't try
+to explain much in the way of airflow basics, except as they relate to how we have
+organized these images and their interconnections.
 
 ## Image Overview
 
 This project creates separate images with specific service roles as described below.
 There are a number of alternatives for setting up airflow.  Here, we are using
-Celery for an executor and it uses redis at its message broker.
+Celery as the executor and it uses redis at its message broker.
 
 ### Core Airflow 
 
@@ -50,8 +50,8 @@ airflow.
 ## Quickstart
 
 The following steps should get you up and running.  The project is built and
-maintained on a mac, so if NOT on a mac, I'm sure things will need modification.
-If you have any issues (mac or not), please do LMK via github issues.
+maintained on a mac, so if you do not happen to be on a mac, things may not go as
+planned.  If you have any issues (mac or not), please do LMK via github issues.
 
 I believe the only pre-requisites here are `git` and `docker`, but LMK if I am
 missing something.
@@ -102,8 +102,8 @@ Redisinsight (at http://localhost:8085) will show that it has connected to the
 redis server, and that there is no activity.
 
 When you're ready, return to the Airflow UI, and click the "on" switch next to
-the Tutorial DAG.  This will execute the DAG 2 times (each will run 3 tasks).  
-You can see Airflow's view of the world in the Airflow UI by clicking on the Tutorial link on the DAG page.
+the Tutorial DAG.  This will execute the DAG 2 times (each will run 3 tasks).  You 
+can see Airflow's view of the world in the Airflow UI by clicking on the Tutorial link on the DAG page.
 
 Once the DAG is running (it will only run for less than a minute or so), you can see the
 tasks queued in flower.  It will queue and execute 6 tasks (3 for each run) 
@@ -147,7 +147,7 @@ modify this file, be sure to restart the workers.
 
 ### Add Workers
 
-This one is easy, thx to `docker-compose`:
+This one is easy, thanks to `docker-compose`:
 
 `docker-compose up --scale worker=2`
 
