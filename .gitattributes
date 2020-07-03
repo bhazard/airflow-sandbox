@@ -1,0 +1,8 @@
+# Set eol handling to support windows.  Files consumed by linux containers must always have lf as
+# the eol char, even when checked out under windows.
+
+# Set default behavior, in case folks don't have core.autocrlf set
+* text=auto
+
+# Any .sh files are probably for consumption by a linux container.  Always make sure they are lf only (no cr).
+*.sh text eol=lf
