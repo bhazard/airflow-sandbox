@@ -182,8 +182,8 @@ services:
 # -----------------------------------------------------------------------------
 # Shared volumes
 # -----------------------------------------------------------------------------
-volumes:
-    dags:
-        driver_opts:
-            type: none
-            device: $PWD/dags
+#volumes:
+        #dags:
+        #driver_opts:
+        #type: none
+        #device: $PWD/dags
